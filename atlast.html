@@ -1,0 +1,512 @@
+<style>
+:root { --pale: #282828; --bg: #1d2021; --bg-toggle: #fbf1f7; --shadow: #111; --border: #3c3836; --muted: #d5c4a1 }
+
+html
+  { background: var(--pale);
+    color: #fbf1f7;
+    font: 18px 'Tex Gyre Adventor', corbel, sans-serif }
+
+body
+  { min-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    grid-gap: 1em }
+
+textarea, input
+  { font: inherit; color: inherit }
+
+textarea, .option-group input
+  { width: 100% }
+
+h1, label
+  { display: block; color: var(--muted) }
+label
+  { font-size: smaller }
+
+a, input, textarea, canvas, button, code
+  { color: inherit;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 1px 1px var(--shadow) }
+
+code
+  { padding: .2ch .5ch }
+
+a, input, textarea, canvas, button
+  { padding: .5ch 1.5ch;
+    font: inherit;
+    transition: background-color 166ms, color 166ms }
+
+#save
+  { --bg: #076678;
+    --border: #458588;
+    background-image: radial-gradient(ellipse at bottom, var(--border), transparent);
+    display: inline-block }
+
+#save:hover
+  { --bg: #458588 }
+
+button:enabled
+  { cursor: pointer }
+
+button:enabled:hover
+  { background: #3c3836 }
+
+button:disabled
+  { color: var(--muted);
+    cursor: progress }
+
+label > .help
+  { border-radius: 1ch;
+    padding: .3ch .9ch;
+    font-size: small;
+    vertical-align: top;
+    text-decoration-style: dotted }
+
+body > div
+  { max-width: 80ch; flex: 1 }
+
+p
+  { flex-grow: 1; margin: 1ch 0 }
+
+.option-group
+  { display: flex; grid-gap: 1.5ch }
+
+.smol
+  { flex-grow: 0 }
+
+hr
+  { border: 0;
+    height: 1px;
+    background: var(--bg);
+    box-shadow: 1px 1px inset var(--shadow),
+                1px 1px var(--border) }
+</style>
+
+<body>
+<div>
+
+<p><label>Preview <button id="toggleCanvasBackground" class="help">&#9680</button></label>
+<canvas></canvas>
+<p><small id="preview-details"><b>?</b>x<b>?</b>, row height <b>?</b> px, size <b>?</b> kbytes</small>
+<input id="canvasBackground" type="hidden" />
+
+<p><label for="text">Text</label>
+<textarea id="text" rows="6">!"#$%&amp;'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW
+XYZ[×]^_`abcdefghijklmnopqrstuvwxyz{}~\ẞÀÁÂÃÄÅÆÇÈÉÊËÌÍ
+ÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ¿¡«»°Š
+ŒŽšœž™©®€£¢“‘”…’</textarea>
+
+<div class="option-group">
+
+	<p><label for="font">Font <a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font">?</a></label>
+	<input id="font" value="18px Tex Gyre Adventor"/></input>
+
+	<p><label for="color">Color <a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle">?</a></label>
+	<input id="color" value="white"/></input>
+
+</div>
+
+<div class="option-group">
+
+	<p><label for="shadowColor">Shadow <a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value">?</a></label>
+	<input id="shadowColor" value="rgb(33 33 33 / 80%)" size=30 /></input>
+
+	<p><label for="shadowX">X Offset<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/shadowOffsetX">?</a></label>
+	<input id="shadowX" value="0" /></input>
+
+	<p><label for="shadowY">Y Offset<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/shadowOffsetY">?</a></label>
+	<input id="shadowY" value="0"/></input>
+
+	<p><label for="shadowBlur">Blur<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/shadowBlur">?</a></label>
+	<input id="shadowBlur" value="0"/></input>
+
+</div>
+
+<div class="option-group">
+
+	<p><label for="outlineStyle">Outline<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value">?</a></label>
+	<input id="outlineStyle" value="rgb(33 33 33 / 80%)"/></input>
+
+	<p><label for="outlineThicc">Thickness<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineWidth">?</a></label>
+	<input id="outlineThicc" value="0"/></input>
+
+</div>
+
+<div>
+	<div class="option-group">
+		<p><label for="externalFontUrl">External Font URL<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/FontFace/FontFace">?</a></label>
+		<input id="externalFontUrl" /></input>
+
+		<p class="smol"><label for="loadExternalFont">&nbsp;</label>
+		<button id="loadExternalFont">Load Font</button>
+	</div>
+
+	<p><small id="externalFontStatus"></small>
+</div>
+
+
+<div class="option-group">
+
+	<p><label for="saveName">Filename</label>
+	<input id="saveName" value="GameFont.tga"/></input>
+
+	<p class="smol"><label for="save">&nbsp;</label>
+	<a id="save" download="GameFont.tga">Save TGA</a>
+
+</div>
+
+<hr>
+
+<p><small>"Advanced" options ... mostly to do with spacing.</small>
+<p>The built-in font metrics seem generous sometimes, this allows shrinking font measurements from the browser. If you find the individual glyphs in the generated atlas have columns of whitespace on left or right sides, increase the trim values. But if the left and right edges are clipped, decrease them.
+<p>When Outline Thickness is used above, additional padding is added to each four sides of each glyph given by the product of Outline Thickness &amp; Outline Spacing Factor.
+
+<div class="option-group">
+
+	<p><label for="trimLeft">Trim Left</label>
+	<input id="trimLeft" value="0.12"/></input>
+
+	<p><label for="trimWidth">Trim Width</label>
+	<input id="trimWidth" value="0.12"/></input>
+
+	<p><label for="outlineFactor">Outline Spacing Factor</label>
+	<input id="outlineFactor" value="0.5"/></input>
+
+</div>
+
+<hr>
+
+<h1>About</h1>
+<p>Hi! This makes the text portion of a GameFont.tga for Civilization IV.
+<p>The TGA file contains invisible pink <code>rgb(255 0 255 / 0%)</code> pixels as guides. With teal <code>rgb(0 255 255 / 0%)</code> pixels as baseline/descent indicators.
+<p>The "Font" input field allows changing some font options like size and family. It should use fonts available to your browser; probably whatever is installed on your system. You can also try using an external font by using the font family "External" and providing a font URL and clicking "Load Font". Here are some example URLs:
+<ul>
+	<li>Quicksand <code>url(https://fonts.gstatic.com/s/quicksand/v30/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2)</code></li>
+	<li>Oxygen <code>url(https://fonts.gstatic.com/s/oxygen/v5/qBSyz106i5ud7wkBU-FrPevvDin1pK8aKteLpeZ5c0A.woff2)</code></li>
+</ul>
+<p>If you use an external font, make sure it includes the right unicode range or it might not show up.
+
+</div>
+
+<script>
+const BYTES_PER_PX = 4;
+const FRAME_WIDTH = 1;
+const FRAME_COLOR   = { r: 255, g: 0, b: 255, a: 0 }
+const DESCENT_COLOR = { r: 0, g: 255, b: 255, a: 0 }
+
+const createState = (current) => (next) => [current, current = next]
+const createMemo = (current) => (next) =>
+	current === next ? [false, current]
+	                 : [true, current, current = next]
+
+;(() => {
+	const canvas = document.querySelector("canvas")
+	const canvasBackground = document.querySelector("#canvasBackground")
+	const inputs = [document.querySelector("#text"), ...document.querySelectorAll("input:not([type=hidden])")];
+	const options = () => Object.fromEntries(inputs.map(i => [i.id, i.value]))
+	const toggleCanvasBackground = () => canvasBackground.value = canvasBackground.value ? "" : "var(--bg-toggle)"
+
+	canvas.style.setProperty("--bg", canvasBackground.value)
+
+	document.querySelector("#toggleCanvasBackground")
+		.addEventListener("click", () => canvas.style.setProperty("--bg", toggleCanvasBackground()))
+
+	const setExternalFont = createState(null)
+	const setExternalFontStatus = (v) => [
+		(document.querySelector("#loadExternalFont").disabled = "pending" in v),
+		(document.querySelector("#externalFontStatus").innerText = fontStatusText(v)),
+		redraw({ canvas, ...options() })
+	]
+
+	document.querySelector("#loadExternalFont")
+		.addEventListener("click", () => loadExternalFont({ setExternalFont, setExternalFontStatus }))
+
+	loadExternalFont({ setExternalFont, setExternalFontStatus })
+	inputs.forEach(i => i.addEventListener("input", () => redraw({ canvas, ...options() })))
+	redraw({ canvas, ...options() })
+})()
+
+function loadExternalFont({ setExternalFont, setExternalFontStatus }) {
+	let { value } = document.querySelector("#externalFontUrl")
+	if (URL.canParse(value))
+		value = `url(${value})`
+
+	const [oldFont, newFont] = setExternalFont(value ? new FontFace("External", value) : null);
+
+	if (oldFont)
+			document.fonts.delete(oldFont)
+
+	if (newFont) {
+		setExternalFontStatus({ "pending": newFont })
+		newFont.load().then((...result) => setExternalFontStatus({ "loaded": result }),
+			                  (...result) => setExternalFontStatus({ "failed": result }))
+		document.fonts.add(newFont)
+	} else {
+		setExternalFontStatus({})
+	}
+}
+
+function fontStatusText(v) {
+	if (!v)
+		return ""
+	if ("pending" in v)
+		return "pending..."
+	else if ("loaded" in v)
+		return `loaded font family as "External" (try "18px External" in the font field to use it)`
+	else
+		return Object.entries(v).map(([k, v]) => `${k}: ${v}`)
+}
+
+function redraw({ canvas, text, font, color, shadowColor, shadowX, shadowY, shadowBlur, outlineStyle, outlineThicc, trimLeft, trimWidth, outlineFactor, saveName }) {
+	const ctx = canvas.getContext("2d")
+	ctx.font = font
+	ctx.fillStyle = color 
+	ctx.shadowColor = shadowColor
+	ctx.shadowOffsetX = shadowX
+	ctx.shadowOffsetY = shadowY
+	ctx.shadowBlur = shadowBlur
+	outlineThicc = parseFloat(outlineThicc) || 0
+	outlineFactor = parseFloat(outlineFactor) || 0
+
+	/* this is mostly made up, the shadowBlur doesn't seem right at all */
+	const shadowLeft  = Math.min(ctx.shadowOffsetX, 0)/* - 0.5 * ctx.shadowBlur */ - outlineFactor * outlineThicc
+	const shadowRight = Math.max(ctx.shadowOffsetX, 0)/* + 0.5 * ctx.shadowBlur */ + outlineFactor * outlineThicc
+	const shadowUp    = Math.min(ctx.shadowOffsetY, 0)/* - 0.5 * ctx.shadowBlur */ - outlineFactor * outlineThicc
+	const shadowDown  = Math.max(ctx.shadowOffsetY, 0)/* + 0.5 * ctx.shadowBlur */ + outlineFactor * outlineThicc
+	trimLeft  = parseFloat(trimLeft) || 0;
+	trimWidth = parseFloat(trimWidth) || 0;
+
+	const metrics = Array.from(text)
+		.map(s => {
+			const {
+				/* usually negative */
+				actualBoundingBoxLeft: leftf,
+				actualBoundingBoxRight: rightf,
+				actualBoundingBoxAscent: ascentf,
+				/* positive for low hanging things like g, negative for high up stuff like ` */
+				actualBoundingBoxDescent: descentf,
+			} = ctx.measureText(s)
+
+			return {
+				s,
+				isLineWrap: !leftf && !rightf,
+				left: Math.ceil(leftf - shadowLeft - trimLeft),
+				width: Math.ceil(leftf - shadowLeft - trimLeft) + Math.ceil(rightf + shadowRight - trimWidth),
+				/* ascent is the distance from the bottom or baseline to the top of the glyph.
+				 * descent is same distance but to the bottom of the glyph. */
+				height: Math.ceil(ascentf - shadowUp + descentf + shadowDown),
+				/* A positive descent means the character draws below the y passed to
+				 * fillText(). Decrease y so we draw higher as to not rasterize past
+				 * textHeight. Use descent later to draw the cyan descent marker pixel
+				 * in the frame.
+				 *
+				 * A positive shadowY is shadowDown, is added to the descent as it
+				 * increases the hangy-downyness of what is drawn. */
+				descent: Math.max(Math.ceil(descentf + shadowDown), 0),
+			}
+		})
+
+	const textHeight = Math.max(0, ...metrics.map(({ height }) => height))
+	const lineHeight = textHeight + FRAME_WIDTH
+
+	{ /* update canvas width and height to fit the given text */
+		const w = longest_line_width(metrics) || 1
+		const h = line_count(metrics) * lineHeight
+		set_canvas_size(canvas, { w, h })
+	}
+
+	{ /* draw text */
+		let x = 0;
+		let y = textHeight;
+
+		metrics.forEach(({ s, isLineWrap, left, width, descent }) => {
+			if (isLineWrap) {
+				x = 0
+				y += lineHeight
+				return
+			}
+
+			/* drawn with bottom-left at the given x and y */
+
+			if (parseFloat(outlineThicc) > 0) {
+				ctx.save();
+				/* This feature probably sucks compared to drawing the shadow multiple
+				 * times. Instead of lineJoin round, setting miterLimit to 4 with font
+				 * '24px Times' looks a bit * better but makes artifacting for roundier
+				 * fonts. This is okay more generally. Uhg... */
+				ctx.lineJoin = 'round'
+				ctx.lineWidth = outlineThicc
+				ctx.strokeStyle = outlineStyle
+				ctx.strokeText(s, x + left, y - descent)
+				ctx.restore();
+			}
+
+			ctx.fillText(s, x + left, y - descent)
+			x += width + FRAME_WIDTH
+		})
+	}
+
+	const buf = ctx.getImageData(0, 0, canvas.width, canvas.height)
+	const pixelsPerRow = buf.width
+
+	{ /* draw pink and teal frame */
+		let x = 0;
+		let y = 0;
+
+		[...metrics, { isLineWrap: true }].forEach(({ s, isLineWrap, width, descent }, i) => {
+			if (isLineWrap) {
+				/* fill the end of the this line with pink rows */
+				for (let nextLine = y + lineHeight; y < nextLine; y++)
+					for (let nextRow = (y + 1) * pixelsPerRow,
+					               p = y * pixelsPerRow + x; p < nextRow; p++)
+						set_rgba(buf, p, FRAME_COLOR)
+
+				x = 0
+				return
+			}
+
+			const bottomRight = x + width + (y + textHeight) * pixelsPerRow
+
+			/* right edge frame */
+			for (let p = y * pixelsPerRow + x + width; p <= bottomRight; p += pixelsPerRow)
+				set_rgba(buf, p, FRAME_COLOR)
+
+			/* bottom edge frame */
+			for (let p = (y + textHeight) * pixelsPerRow + x; p < bottomRight; p++)
+				set_rgba(buf, p, FRAME_COLOR)
+
+			/* descent pixel */
+			if (descent > 0)
+				set_rgba(buf, bottomRight - descent * pixelsPerRow, DESCENT_COLOR)
+
+			x += width + FRAME_WIDTH
+		})
+
+		/* This doesn't seem to update the canvas with our transparent pixels.
+		 * At least in Firefox, after calling putImageData(), if we get the buffer
+		 * back with getImageData() the FRAME_COLOR pixels set above will just be
+		 * black. So putImageData() is useful when making visual changes, when
+		 * testing with a non-zero alpha channel, but doesn't really do anything
+		 * here normally. */
+		ctx.putImageData(buf, 0, 0)
+	}
+
+	const tga = new Blob([tga_header(buf), tga_data(buf)], { type: "image/x-tga" })
+
+	{ /* update save button */
+		const a = document.querySelector("#save")
+		if (a.href)
+			URL.revokeObjectURL(a.href)
+		a.href = URL.createObjectURL(tga)
+		a.download = saveName
+	}
+
+	{
+		/* update preview details */
+		const details = document.querySelector("#preview-details").children;
+		[canvas.width, canvas.height, lineHeight, tga.size / 1000]
+			.map(i => i.toLocaleString())
+			.forEach((v, i) => (details[i].innerText = v))
+	}
+}
+
+/* https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas */
+function set_canvas_size(canvas, { w, h }) {
+	let ctx = canvas.getContext("2d")
+	const { font, fillStyle, shadowColor, shadowOffsetX, shadowOffsetY, shadowBlur, lineWidth, strokeStyle } = ctx
+
+	const dpr = window.devicePixelRatio || 1
+	canvas.width = w
+	canvas.height = h
+	canvas.style.width = (w / dpr) + "px"
+	canvas.style.height = (h / dpr) + "px"
+
+	ctx.font = font
+	ctx.fillStyle = fillStyle
+	ctx.shadowColor = shadowColor
+	ctx.shadowOffsetX = shadowOffsetX
+	ctx.shadowOffsetY = shadowOffsetY
+	ctx.shadowBlur = shadowBlur
+	ctx.lineWidth = lineWidth
+	ctx.strokeStyle = strokeStyle
+	return dpr
+}
+
+/* takes an `ImageData` from `CanvasRenderingContext2D.getImageData()`
+ * returns Uint8Array 
+ *
+ * At least in Firefox, canvas.toBlob() and canvas.toDataURL() both fuck up
+ * transparent pixels and drop rgb channel data. It's so stupid. Probably
+ * has something to do how it encodes pngs. So we encode it as a TGA because
+ * it's stupid simple in this case. */
+function tga_header(image) {
+	// https://en.wikipedia.org/wiki/Truevision_TGA#Header
+	const TYPE   = 0x02
+	const WIDTH  = 0x0c
+	const HEIGHT = 0x0e
+	const DEPTH  = 0x10
+	const FLAGS  = 0x11
+
+	const tga = new Uint8Array(0x12)
+	tga[TYPE]     = 0x02 /* uncompressed true-color image */
+	tga[WIDTH]    = image.width
+	tga[WIDTH+1]  = image.width >> 8
+	tga[HEIGHT]   = image.height
+	tga[HEIGHT+1] = image.height >> 8
+	tga[DEPTH]    = 32
+	tga[FLAGS]    = 0b10_1000 /* top to bottom & left to right + 8 bit alpha channel bit depth */
+	return tga
+}
+
+/* Image data appears to be BGRA instead of RGBA? wut
+ *
+ * Copies image buffer into a new Uint8Array with channels in BGRA order. */
+function tga_data(image) {
+	const tga = new Uint8Array(image.data.length)
+
+	for (let i = 0; i < image.width * image.height; i++) {
+		tga[i * 4 + 2] = image.data[i * 4 + 0] /* r */
+		tga[i * 4 + 1] = image.data[i * 4 + 1] /* g */
+		tga[i * 4 + 0] = image.data[i * 4 + 2] /* b */
+		tga[i * 4 + 3] = image.data[i * 4 + 3] /* a */
+	}
+
+	return tga
+}
+
+/* longest line by glyph width, not number of glyphs.
+ *
+ * sums ceil width plus one invisible frame pixel */
+function longest_line_width(metrics) {
+	let longest = 0
+	let run = 0
+
+	metrics.forEach(({ isLineWrap, width }) => {
+		if (isLineWrap) {
+			longest = Math.max(longest, run)
+			run = 0
+		} else {
+			run += width + FRAME_WIDTH
+		}
+	})
+
+	return Math.max(longest, run)
+}
+
+/* one plus the number of line wraps */
+function line_count(metrics) {
+		return 1 + metrics.filter(({ isLineWrap }) => isLineWrap).length
+}
+
+function set_rgba(image, p, { r, g, b, a }) {
+	p *= BYTES_PER_PX
+	image.data[p + 0] = r
+	image.data[p + 1] = g
+	image.data[p + 2] = b
+	image.data[p + 3] = a
+}
+</script>
+</body>

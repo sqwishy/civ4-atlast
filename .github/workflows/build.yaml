@@ -1,0 +1,24 @@
+on: push
+jobs:
+  build:
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+    steps:
+      - run: |
+          dnf install -y --setopt=install_weak_deps=False \
+          rust rust-std-static-x86_64-pc-windows-gnu cargo
+      - uses: actions/checkout@v3
+      - run: cargo build --target x86_64-pc-windows-gnu --release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: atlast.exe
+          path: target/x86_64-pc-windows-gnu/release/atlast.exe
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/x86_64-pc-windows-gnu/release/atlast.exe
+            atlast.html

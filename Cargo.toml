@@ -1,0 +1,12 @@
+[package]
+name = "atlast"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { version = "1", features = ["backtrace"] }
+thiserror = "1"
+image = { version = "*", features = ["tga","png"], default-features = false }
+tl = "0"
