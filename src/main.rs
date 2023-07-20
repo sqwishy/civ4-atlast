@@ -109,8 +109,7 @@ fn main() {
 
 fn usage_and_exit(exe: &str) -> ! {
     eprintln!(
-        r#"\
-usage: {exe} [options]
+        r#"usage: {exe} [options]
   options can include:
   --unpack [GameFont.tga]    unpack GameFont.tga to a directory
   --pack [GameFont/]         opposite of unpack, write GameFont.tga using unpacked files

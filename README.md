@@ -12,7 +12,7 @@ A couple tools for packing and unpacking GameFont.tga from Civilization IV.
    The idea is it's easier to edit a GameFont.tga by working with individual
    images and a manifest of the images and their ordering.
 
-An example:
+## An example:
 
 ```
 $ atlast.exe --unpack "C:\Games\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Realism Invictus\Assets\res\Fonts\GameFont.tga"
@@ -63,3 +63,42 @@ Repack the images specified in GameFont/index.html to the game's GameFont.tga
 at the path specified. The size option ensures the image is exactly that size.
 I've found this important for the GameFont_75.tga file as it _seems_ to need to
 be a very specific size to work, even if it's mostly empty.
+
+## usage / atlast.exe --help
+
+```
+usage: atlast [options]
+  options can include:
+  --unpack [GameFont.tga]    unpack GameFont.tga to a directory
+  --pack [GameFont/]         opposite of unpack, write GameFont.tga using unpacked files
+  -n, --dry-run              read but don't write files
+  -n, --dry-run              read but don't write files
+  --output ...               when used with --unpack, sets the output directory
+                             when used with --pack, sets the output .tga file
+  --skip-index               with --unpack, do not write index.html
+  --patch-index              with --unpack, only update matching images in index.html
+  --size [WIDTH]x[HEIGHT]    with --pack, sets .tga file dimensions
+
+examples:
+
+  atlast --unpack
+    Read `GameFont.tga` and write each glyph as a .png file in the
+    `GameFont` directory with an `index.html` needed for repacking.
+
+  atlast --unpack GameFont_75.tga
+    Unpack `GameFont_75.tga` to the `GameFont_75` directory.
+
+  atlast --unpack SpecialGameFont.tga --output GameFont_75 --patch-index
+    Unpack `SpecialGameFont.tga` to the `GameFont_75` directory. Instead of overwriting
+    `GameFont_75/index.html`, only update `<img>` elements with paths that match the image files
+    unpacked from the .tga file. This could be useful if you're unpacking a .tga that contains just
+    the text portion of the atlas and want to update just the descent/baseline markers for those
+    images in the html file.
+
+  atlast --pack --output SexyLettuce.tga
+    Read the `index.html` in the `GameFont` directory and pack the
+    images listed there into an atlas named `SexyLettuce.tga`.
+
+The index.html is used as a manifest for repacking GameFont.tga and contains information about
+descent/baseline markers.
+```
