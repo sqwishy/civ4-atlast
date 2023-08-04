@@ -13,6 +13,12 @@ body
     align-items: center;
     grid-gap: 1em }
 
+.canvas-float
+  { position: sticky; top: 0 }
+.canvas-float label, .canvas-float small
+  { background: var(--pale);
+    outline: 2px solid var(--pale) }
+
 textarea, input
   { font: inherit; color: inherit }
 
@@ -20,7 +26,7 @@ textarea, .option-group input
   { width: 100% }
 
 h1, label
-  { display: block; color: var(--muted) }
+  { color: var(--muted) }
 label
   { font-size: smaller }
 
@@ -74,8 +80,8 @@ p
 .option-group
   { display: flex; grid-gap: 1.5ch }
 
-.smol
-  { flex-grow: 0 }
+.smol-button-thing
+  { flex-grow: 0; display: flex; align-items: end }
 
 hr
   { border: 0;
@@ -88,10 +94,12 @@ hr
 <body>
 <div>
 
-<p><label>Preview <button id="toggleCanvasBackground" class="help">&#9680</button></label>
-<canvas></canvas>
-<p><small id="preview-details"><b>?</b>x<b>?</b>, row height <b>?</b> px, size <b>?</b> kbytes</small>
-<input id="canvasBackground" type="hidden" />
+<p class="canvas-float">
+	<label>Preview <button id="toggleCanvasBackground" class="help">&#9680</button></label>
+	<small id="preview-details"><b>?</b>x<b>?</b>, row height <b>?</b> px, size <b>?</b> kbytes</small>
+	<input id="canvasBackground" type="hidden" />
+	<canvas></canvas>
+</p>
 
 <p><label for="text">Text</label>
 <textarea id="text" rows="6">!"#$%&amp;'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW
@@ -140,7 +148,7 @@ XYZ[×]^_`abcdefghijklmnopqrstuvwxyz{}~\ẞÀÁÂÃÄÅÆÇÈÉÊËÌÍ
 		<p><label for="externalFontUrl">External Font URL<a class="help" target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/FontFace/FontFace">?</a></label>
 		<input id="externalFontUrl" /></input>
 
-		<p class="smol"><label for="loadExternalFont">&nbsp;</label>
+		<p class="smol-button-thing">
 		<button id="loadExternalFont">Load Font</button>
 	</div>
 
@@ -153,7 +161,7 @@ XYZ[×]^_`abcdefghijklmnopqrstuvwxyz{}~\ẞÀÁÂÃÄÅÆÇÈÉÊËÌÍ
 	<p><label for="saveName">Filename</label>
 	<input id="saveName" value="GameFont.tga"/></input>
 
-	<p class="smol"><label for="save">&nbsp;</label>
+	<p class="smol-button-thing">
 	<a id="save" download="GameFont.tga">Save TGA</a>
 
 </div>
@@ -289,6 +297,7 @@ function redraw({ canvas, text, font, color, shadowColor, shadowX, shadowY, shad
 				/* positive for low hanging things like g, negative for high up stuff like ` */
 				actualBoundingBoxDescent: descentf,
 			} = ctx.measureText(s)
+			// if (/[a-zA-Z]/.test(s)) console.log({s, descentf, round: Math.round(descentf + shadowDown)})
 
 			return {
 				s,
@@ -297,7 +306,7 @@ function redraw({ canvas, text, font, color, shadowColor, shadowX, shadowY, shad
 				width: Math.ceil(leftf - shadowLeft - trimLeft) + Math.ceil(rightf + shadowRight - trimWidth),
 				/* ascent is the distance from the bottom or baseline to the top of the glyph.
 				 * descent is same distance but to the bottom of the glyph. */
-				height: Math.ceil(ascentf - shadowUp + descentf + shadowDown),
+				height: Math.ceil(ascentf - shadowUp) + Math.round(descentf + shadowDown),
 				/* A positive descent means the character draws below the y passed to
 				 * fillText(). Decrease y so we draw higher as to not rasterize past
 				 * textHeight. Use descent later to draw the cyan descent marker pixel
@@ -305,7 +314,7 @@ function redraw({ canvas, text, font, color, shadowColor, shadowX, shadowY, shad
 				 *
 				 * A positive shadowY is shadowDown, is added to the descent as it
 				 * increases the hangy-downyness of what is drawn. */
-				descent: Math.max(Math.ceil(descentf + shadowDown), 0),
+				descent: Math.max(Math.round(descentf + shadowDown), 0),
 			}
 		})
 
