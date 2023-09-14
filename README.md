@@ -29,6 +29,8 @@ writing an index.html file used as a listing of the atlas images. You can
 with a text file to modify the listing. The index.html is used later to pack a
 GameFont.tga.
 
+### Patching GameFont.tga with a custom font from atlast.html
+
 ```
 $ atlast.exe --unpack custom-GameFont-text-altas.tga --output GameFont --patch-index
 [0.000s] loading custom-GameFont-text-altas.tga to unpack to GameFont...
@@ -44,12 +46,11 @@ paragraph above, we can unpack it to the directory created from the unpack
 before. But this .tga only contains the text portion, the first 181 images.
 This way, we replace the original text with our own.
 
-Instead of overwriting the index.html, the --patch-index option says that when
+Instead of overwriting the index.html, the `--patch-index` option says that when
 each image is written we look for a corresponding img tag in index.html (with a
 matching src attribute) and update it's baseline marker data. Without this,
-and unpacking the images from our generated atlas alone, would mean that
-letters might be rendered in funny places and be vertically misaligned in the
-repacked GameFont.tga.
+and unpacking the images from our generated atlas alone, could cause the
+printable characters to appear vertically misaligned in game.
 
 ```
 $ atlast.exe --pack GameFont --size 2046x540 --output "C:\Games\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Realism Invictus\Assets\res\Fonts\GameFont.tga"
@@ -62,7 +63,7 @@ $ atlast.exe --pack GameFont --size 2046x540 --output "C:\Games\Sid Meier's Civi
 Repack the images specified in GameFont/index.html to the game's GameFont.tga
 at the path specified. The size option ensures the image is exactly that size.
 I've found this important for the GameFont_75.tga file as it _seems_ to need to
-be a very specific size to work, even if it's mostly empty.
+be a very specific size to work, even if it's mostly empty/transparent.
 
 ## usage / atlast.exe --help
 
