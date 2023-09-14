@@ -18,6 +18,13 @@ impl Point {
         })
     }
 
+    pub fn checked_sub(&self, Point { x, y }: Point) -> Option<Self> {
+        Some(Point {
+            x: self.x.checked_sub(x)?,
+            y: self.y.checked_sub(y)?,
+        })
+    }
+
     pub fn next_x(&self) -> Option<Self> {
         self.x.checked_add(1).map(|x| Point { x, y: self.y })
     }
@@ -38,16 +45,16 @@ impl Point {
         (self.y..=u32::MAX).map(move |y| Point { x, y })
     }
 
-    pub fn get_pixel_at(self, buf: &RgbaImage) -> Option<(&'_ Rgba<u8>, Self)> {
+    pub fn pixel_in(self, buf: &RgbaImage) -> Option<(&'_ Rgba<u8>, Self)> {
         buf.get_pixel_checked(self.x, self.y)
             .map(|pixel| (pixel, self))
     }
 
     pub fn scan_x(self, buf: &RgbaImage) -> impl Iterator<Item = (&'_ Rgba<u8>, Self)> {
-        self.x_counter().map_while(|at| at.get_pixel_at(buf))
+        self.x_counter().map_while(|at| at.pixel_in(buf))
     }
 
     pub fn scan_y(self, buf: &RgbaImage) -> impl Iterator<Item = (&'_ Rgba<u8>, Self)> {
-        self.y_counter().map_while(|at| at.get_pixel_at(buf))
+        self.y_counter().map_while(|at| at.pixel_in(buf))
     }
 }

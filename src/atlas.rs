@@ -24,16 +24,16 @@ use crate::point::Point;
 /// ppppppppp
 ///
 /// The methods here assume the image origin (0, 0) is top left.
-#[derive(Debug, Clone, Copy)]
-struct Glyph {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Glyph {
     /// `tl` is the xy pixel coordinates of the Glyph's top-left visible pixel within the
     /// entire atlas.
-    tl: Point,
+    pub tl: Point,
     /// `br` like `tr` but for the bottom-right visible pixel (not the frame pixel)
-    br: Point,
+    pub br: Point,
     /// distance from the bottom frame to the cyan pixel, zero if no cyan pixel. (would be 2 in the
     /// example in the struct docstring above.)
-    descent: u32,
+    pub descent: u32,
 }
 
 impl Glyph {
@@ -56,13 +56,15 @@ impl Glyph {
 
 pub struct Atlas<'i> {
     buf: &'i RgbaImage,
-    rows: Vec<Vec<Glyph>>,
+    pub rows: Vec<Vec<Glyph>>,
 }
 
 #[derive(Debug, thiserror::Error)]
 enum NoGlyph {
     #[error("no visible glyph, just frame")]
     JustFrame { point: Point },
+    #[error("top-left appears interior to another glyph")]
+    Interior,
     #[error("reached image edge")]
     End,
 }
@@ -81,7 +83,7 @@ impl<'i> Atlas<'i> {
 
         let mut rows = Vec::<Vec<Glyph>>::default();
 
-        loop {
+        while point.y < buf.height() {
             let mut row = Vec::<Glyph>::default();
 
             while point.x < buf.width() {
@@ -90,22 +92,19 @@ impl<'i> Atlas<'i> {
                         point.x = glyph.br.x + FRAME_WIDTH + 1;
                         row.push(glyph);
                     }
-                    Err(NoGlyph::End) | Err(NoGlyph::JustFrame { .. }) => break,
+                    Err(NoGlyph::Interior) | Err(NoGlyph::JustFrame { .. }) => point.x += 1,
+                    Err(NoGlyph::End) => break,
                 }
             }
 
-            if let Some(glyph) = row.first() {
-                point = Point {
-                    x: 0,
-                    y: glyph.br.y + FRAME_WIDTH + 1,
-                };
+            point = Point { x: 0, y: point.y + 1 };
+
+            if !row.is_empty() {
                 rows.push(row);
-            } else {
-                break;
             }
         }
 
-        Atlas { rows, buf }
+        return Atlas { rows, buf };
     }
 
     pub fn save_images<P: AsRef<Path>>(&self, outdir: P) -> Result<Index> {
@@ -151,6 +150,19 @@ impl Glyph {
             return Err(NoGlyph::JustFrame { point: tl });
         }
 
+        /* ensure tl is a corner */
+        for at in [
+            tl.checked_sub(Point { x: 1, y: 0 }),
+            tl.checked_sub(Point { x: 0, y: 1 }),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if matches!(at.pixel_in(buf), Some((&px, _)) if !is_frameish(px)) {
+                return Err(NoGlyph::Interior);
+            }
+        }
+
         let (_, frame_tr) = tl
             .next_x()
             .ok_or(NoGlyph::End)?
@@ -161,7 +173,7 @@ impl Glyph {
         let descent = frame_tr
             .y_counter()
             .take_while(|&Point { y, .. }| y < frame_bl.y)
-            .map_while(|at| at.get_pixel_at(buf))
+            .map_while(|at| at.pixel_in(buf))
             .find(|(&pixel, _at)| pixel == BASELINE)
             /* no subtraction overflow because take_while() above */
             .map(|(_, Point { y, .. })| frame_bl.y - y)

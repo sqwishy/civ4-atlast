@@ -8,9 +8,9 @@ use anyhow::{Context, Result};
 use crate::atlas::Atlas;
 use crate::index::Index;
 
-mod atlas;
-mod index;
-mod point;
+pub(crate) mod atlas;
+pub(crate) mod index;
+pub(crate) mod point;
 
 fn main() {
     let argv = std::env::args().collect::<Vec<String>>();
@@ -271,5 +271,82 @@ impl fmt::Display for TimeSince {
             .map(|then| now.saturating_duration_since(then).as_secs_f32())
             .unwrap_or_default();
         write!(f, "[{since:.03}s]")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::atlas::{Atlas, Glyph};
+    use crate::point::Point;
+    use image::{io::Reader as ImageReader, ImageFormat};
+    use std::io::Cursor;
+
+    const TGA: &[u8] = include_bytes!("../test.tga");
+
+    #[test]
+    fn test() {
+        let tga = ImageReader::with_format(Cursor::new(TGA), ImageFormat::Tga)
+            .decode()
+            .unwrap()
+            .into_rgba8();
+        let atlas = Atlas::from_image(&tga);
+
+        dbg!(&atlas.rows);
+        assert_eq!(
+            atlas.rows,
+            vec![
+                vec![
+                    Glyph {
+                        tl: Point { x: 0, y: 0 },
+                        br: Point { x: 4, y: 7 },
+                        descent: 0
+                    },
+                    Glyph {
+                        tl: Point { x: 12, y: 0 },
+                        br: Point { x: 16, y: 7 },
+                        descent: 0
+                    },
+                    Glyph {
+                        tl: Point { x: 29, y: 0 },
+                        br: Point { x: 30, y: 1 },
+                        descent: 0
+                    },
+                ],
+                vec![Glyph {
+                    tl: Point { x: 6, y: 1 },
+                    br: Point { x: 10, y: 6 },
+                    descent: 0
+                }],
+                vec![Glyph {
+                    tl: Point { x: 21, y: 8 },
+                    br: Point { x: 25, y: 12 },
+                    descent: 0
+                }],
+                vec![
+                    Glyph {
+                        tl: Point { x: 1, y: 9 },
+                        br: Point { x: 6, y: 10 },
+                        descent: 0
+                    },
+                    Glyph {
+                        tl: Point { x: 13, y: 9 },
+                        br: Point { x: 18, y: 10 },
+                        descent: 0
+                    }
+                ],
+                vec![
+                    Glyph {
+                        tl: Point { x: 0, y: 29 },
+                        br: Point { x: 1, y: 30 },
+                        descent: 0
+                    },
+                    Glyph {
+                        tl: Point { x: 29, y: 29 },
+                        br: Point { x: 30, y: 30 },
+                        descent: 0
+                    }
+                ],
+            ]
+        );
     }
 }
