@@ -4,7 +4,7 @@
 html
   { background: var(--pale);
     color: #fbf1f7;
-    font: 18px 'Tex Gyre Adventor', corbel, sans-serif }
+    font: 18px/1.25 'Tex Gyre Adventor', corbel, sans-serif }
 
 body
   { min-height: 100%;
@@ -239,8 +239,13 @@ const createMemo = (current) => (next) =>
 
 function loadExternalFont({ setExternalFont, setExternalFontStatus }) {
 	let { value } = document.querySelector("#externalFontUrl")
-	if (URL.canParse(value))
-		value = `url(${value})`
+
+	/* the external font value should be `url({url})`,
+	 * if we just got a url then surround it in "url()" */
+	try {
+		if (new URL(value))
+			value = `url(${value})`
+	} catch (_) { }
 
 	const [oldFont, newFont] = setExternalFont(value ? new FontFace("External", value) : null);
 
